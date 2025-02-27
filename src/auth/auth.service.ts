@@ -1,10 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from 'src/users/schemas/user.schemas';
+import { Model } from 'mongoose';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
+  constructor(@InjectModel(User.name) private userModel:Model<User>) {}
+
+  async createUser(createUserDto: CreateUserDto) {
+    try{
+      const users = await this.userModel.findOne({email: createUserDto.email})
+      if(users){
+        throw new ConflictException('User already exist')
+      }
+    }catch(error){
+      throw error
+    }
     return 'This action adds a new auth';
   }
 
