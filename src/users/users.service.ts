@@ -10,10 +10,10 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel:Model<User>) {}
   async createUser(createUserDto: CreateUserDto) {
       try {
-        const user = await 
+        const user = await this.userModel.findOne({email: createUserDto.email})
         
       } catch (error) {
-        
+        throw error
       }
 
    
