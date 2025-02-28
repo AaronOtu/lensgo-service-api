@@ -8,7 +8,7 @@ import { User } from './schemas/user.schemas';
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel:Model<User>) {}
-  async createUser(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
       try {
         const user = await this.userModel.findOne({email: createUserDto.email})
         

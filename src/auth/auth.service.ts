@@ -10,7 +10,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 export class AuthService {
   constructor(@InjectModel(User.name) private userModel:Model<User>) {}
 
-  async createUser(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
     try{
       const users = await this.userModel.findOne({email: createUserDto.email})
       if(users){
