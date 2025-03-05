@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Model } from 'mongoose';
@@ -7,31 +7,79 @@ import { User } from './schemas/user.schemas';
 
 @Injectable()
 export class UsersService {
+  private logger = new Logger(UsersService.name);
   constructor(@InjectModel(User.name) private userModel:Model<User>) {}
-  async create(createUserDto: CreateUserDto) {
-      try {
-        const user = await this.userModel.findOne({email: createUserDto.email})
-        
-      } catch (error) {
-        throw error
+ 
+  async getAllUsers() {
+    try {
+
+      console.log("Fetch begin");
+
+      const users = await this.userModel.find();
+      console.log("Fetched users", users) 
+
+      return {
+        message: 'Successfully returned all users',
+        users: users
+      }
+    }
+    catch (error) {
+      throw new ConflictException('Something went wrong')
+    }
+  }
+
+
+  async getOneUser(id: string) {
+    try{
+      const user = await this.userModel.findById(id).exec();
+      if(!user){
+        throw new NotFoundException("User not found")
+      }
+      return {
+        message: "Successfully return user",
+        user: user
+      };
+    }catch(error){
+      this.logger.log(error.message)
+     throw error
+    }
+  }
+
+ 
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
+    try {
+      const user = await this.userModel.findByIdAndUpdate(id, updateUserDto,{new:true}).exec();
+      if(!user){
+        throw new NotFoundException('User not found')
+      }
+      return{
+        message: 'Successfully updated user profile',
+        user:user
+      }
+      
+    } catch (error) {
+      this.logger.log(error.message)
+      throw error
+      
+    }
+
+  }
+ 
+
+  async removeUser(id: string) {
+    try{
+      const user = await this.userModel.findByIdAndDelete(id).exec();
+      if(!user){
+        throw new NotFoundException('User not found')
       }
 
-   
-  }
-
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+      return {
+        message: "Successfully removed user",
+        user:user
+      };
+    }catch(error){
+     this.logger.log(error.message)
+     throw error
+    }
   }
 }

@@ -3,32 +3,30 @@ import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 
-@Controller('admins')
+@Controller('api')
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
-  @Post()
-  create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminsService.create(createAdminDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.adminsService.findAll();
-  }
-
-  @Get(':id')
+ 
+  @Get('admins/:id')
   findOne(@Param('id') id: string) {
-    return this.adminsService.findOne(+id);
+    return this.adminsService.getAdminProfile(id);
   }
 
-  @Patch(':id')
+  @Get('admins')
+  findAll() {
+    console.log('Controller: findAll method called');
+    return this.adminsService.getAdmins();
+  }
+
+
+  @Patch('admins/:id')
   update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminsService.update(+id, updateAdminDto);
+    return this.adminsService.updateAdmin(id, updateAdminDto);
   }
 
-  @Delete(':id')
+  @Delete('admins/:id')
   remove(@Param('id') id: string) {
-    return this.adminsService.remove(+id);
+    return this.adminsService.removeAdmin(id);
   }
 }

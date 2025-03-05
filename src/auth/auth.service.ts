@@ -1,30 +1,86 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/users/schemas/user.schemas';
+import { Admin} from 'src/admins/schemas/admin.schemas';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
+
+
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel:Model<User>) {}
+  private logger = new Logger(AuthService.name);
+  private
+  constructor(
+    @InjectModel(User.name) private userModel:Model<User>, 
+    @InjectModel(Admin.name) private adminModel:Model<Admin>, 
+    
+    private jwtService: JwtService) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async createUser(createUserDto: CreateUserDto) {
     try{
       const users = await this.userModel.findOne({email: createUserDto.email})
       if(users){
         throw new ConflictException('User already exist')
       }
+
+      const hashedPassword = await bcrypt.hash(createUserDto.password,10)
+      const newUser = new this.userModel(
+        {
+          ...createUserDto,
+          password:hashedPassword
+        }
+      )
+      this.logger.log(newUser)
+      await newUser.save();
+
+      return {
+        message: "User successfully created",
+        user: newUser
+      }
+      
     }catch(error){
       throw error
     }
-    return 'This action adds a new auth';
+  
+  }
+  async createAdmin(createAdminDto: CreateAdminDto) {
+    try{
+      const admins = await this.adminModel.findOne({email: createAdminDto.email})
+      if(admins){
+        throw new ConflictException('Admin already exist')
+      }
+
+      const hashedPassword = await bcrypt.hash(createAdminDto.password,10)
+      const newUser = new this.adminModel(
+        {
+          ...createAdminDto,
+          password:hashedPassword
+        }
+      )
+      this.logger.log(newUser)
+      await newUser.save();
+
+      return {
+        message: "Admin successfully created",
+        admin: newUser
+      }
+      
+    }catch(error){
+      throw error
+    }
+  
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  // findAll() {
+  //   return `This action returns all auth`;
+  // }
 
   findOne(id: number) {
     return `This action returns a #${id} auth`;

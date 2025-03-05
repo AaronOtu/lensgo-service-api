@@ -3,20 +3,25 @@ import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
 
-@Controller('auth')
+@Controller('api')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
+  @Post('auth/createUser')
   create(@Body() createUserDto: CreateUserDto) {
-    return this.authService.create(createUserDto);
+    return this.authService.createUser(createUserDto);
+  }
+  @Post('auth/createAdmin')
+  createAdmin(@Body() createAdminDto: CreateAdminDto) {
+    return this.authService.createAdmin(createAdminDto);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.authService.findAll();
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
