@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('api')
+@Controller('users')
 export class UsersController {
   //private logger = new Logger(UsersService.name);
   constructor(private readonly usersService: UsersService) { }
@@ -15,28 +15,25 @@ export class UsersController {
   //   return this.usersService.create(createUserDto);
   // }
 
-  @Get('users')
+  @Get()
   async getAllUsers() {
-
-
-
     console.log('Hitting the endpoint')
     const results = await this.usersService.getAllUsers();
     console.log("Response", results);
     return results
   }
 
-  @Get('users/:id')
+  @Get('/:id')
   findOne(@Param('id') id: string) {
     return this.usersService.getOneUser(id);
   }
 
-  @Patch('users/:id')
+  @Patch('/:id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.updateUser(id, updateUserDto);
   }
 
-  @Delete('users/:id')
+  @Delete('/:id')
   remove(@Param('id') id: string) {
     return this.usersService.removeUser(id);
   }
