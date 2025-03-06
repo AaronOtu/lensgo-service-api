@@ -1,5 +1,4 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,8 +6,8 @@ import { User } from './schemas/user.schemas';
 
 @Injectable()
 export class UsersService {
-  private logger = new Logger(UsersService.name);
-  constructor(@InjectModel(User.name) private userModel:Model<User>) {}
+  private readonly logger = new Logger(UsersService.name);
+  constructor(@InjectModel(User.name) private readonly userModel:Model<User>) {}
  
   async getAllUsers() {
     try {

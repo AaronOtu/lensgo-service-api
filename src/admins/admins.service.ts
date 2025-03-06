@@ -7,8 +7,8 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class AdminsService {
-  private logger = new Logger(AdminsService.name);
-  constructor(@InjectModel(Admin.name) private adminModel: Model<Admin>){}
+  private readonly logger = new Logger(AdminsService.name);
+  constructor(@InjectModel(Admin.name) private readonly adminModel: Model<Admin>){}
 
   async getAdmins(){
     try {
@@ -16,7 +16,7 @@ export class AdminsService {
       const admins = await this.adminModel.find().exec();
 
       return{
-        message: "Retriving all admins",
+        message: "Retrieving all admins",
         admins:admins
       }
     } catch (error) {
@@ -54,7 +54,7 @@ export class AdminsService {
         throw new NotFoundException('Admin not found')
       }
       return {
-        message: 'Succefully updated admin profile',
+        message: 'Successfully updated admin profile',
         admin: admin
       }
     } catch (error) {
@@ -65,7 +65,11 @@ export class AdminsService {
  
   async removeAdmin(id: string) {
     try {
-      await this.adminModel.findByIdAndDelete(id)
+     const removedAdmin = await this.adminModel.findByIdAndDelete(id)
+      if (!removedAdmin) {
+        this.logger.log(`Admin with id ${id} not found`)
+        throw new NotFoundException('Admin not found')
+      }
       return {
         message: `Successfully deleted admin`
       }

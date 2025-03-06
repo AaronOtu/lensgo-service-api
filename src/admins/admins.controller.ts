@@ -7,16 +7,15 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
- 
-  @Get('admins/:id')
-  findOne(@Param('id') id: string) {
-    return this.adminsService.getAdminProfile(id);
-  }
-
   @Get('admins')
   findAll() {
     console.log('Controller: findAll method called');
     return this.adminsService.getAdmins();
+  }
+ 
+  @Get('admins/:id')
+  findOne(@Param('id') id: string) {
+    return this.adminsService.getAdminProfile(id);
   }
 
 

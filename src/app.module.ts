@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { PhotographersModule } from './photographers/photographers.module';
+import { ArtisansModule } from './artisans/artisans.module';
 import { AdminsModule } from './admins/admins.module';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -12,7 +12,7 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.DB_URL),
-    AuthModule,AdminsModule,UsersModule, PhotographersModule,],
+    AuthModule,AdminsModule,UsersModule, ArtisansModule,],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -5,9 +5,10 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt'; 
 import { UsersModule } from 'src/users/users.module';
 import { AdminsModule } from 'src/admins/admins.module';
+import { ArtisansModule } from 'src/artisans/artisans.module';
 
 @Module({
-  imports:[UsersModule,AdminsModule,
+  imports:[UsersModule,AdminsModule,ArtisansModule,
 
     //PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({

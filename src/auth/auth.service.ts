@@ -7,21 +7,22 @@ import { Admin} from 'src/admins/schemas/admin.schemas';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
+import { Artisans } from 'src/artisans/schemas/artisans.schemas';
+import { CreateArtisansDto } from 'src/artisans/dto/create-artisans.dto';
 
 
 
 @Injectable()
 export class AuthService {
-  private logger = new Logger(AuthService.name);
+  private readonly logger = new Logger(AuthService.name);
   private
   constructor(
-    @InjectModel(User.name) private userModel:Model<User>, 
-    @InjectModel(Admin.name) private adminModel:Model<Admin>, 
-    
-    private jwtService: JwtService) {}
+    @InjectModel(User.name) private readonly userModel:Model<User>, 
+    @InjectModel(Admin.name) private readonly adminModel:Model<Admin>, 
+    @InjectModel(Artisans.name) private readonly artisansModel:Model<Artisans>,
+    private readonly jwtService: JwtService) {}
 
   async createUser(createUserDto: CreateUserDto) {
     try{
@@ -46,6 +47,7 @@ export class AuthService {
       }
       
     }catch(error){
+      this.logger.log(error)
       throw error
     }
   
@@ -73,6 +75,35 @@ export class AuthService {
       }
       
     }catch(error){
+      this.logger.log(error)
+      throw error
+    }
+  
+  }
+  async createArtisans(createArtisansDto: CreateArtisansDto) {
+    try{
+      const admins = await this.artisansModel.findOne({email: createArtisansDto.email})
+      if(admins){
+        throw new ConflictException('Artisans already exist')
+      }
+
+      const hashedPassword = await bcrypt.hash(createArtisansDto.password,10)
+      const newUser = new this.artisansModel(
+        {
+          ...createArtisansDto,
+          password:hashedPassword
+        }
+      )
+      this.logger.log(newUser)
+      await newUser.save();
+
+      return {
+        message: "Artisans successfully created",
+        admin: newUser
+      }
+      
+    }catch(error){
+      this.logger.log(error)
       throw error
     }
   
