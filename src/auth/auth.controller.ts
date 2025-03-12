@@ -10,17 +10,22 @@ import { CreateArtisansDto } from 'src/artisans/dto/create-artisans.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('/createUser')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.authService.createUser(createUserDto);
-  }
-  @Post('/createAdmin')
-  createAdmin(@Body() createAdminDto: CreateAdminDto) {
-    return this.authService.createAdmin(createAdminDto);
-  }
-  @Post('/createArtisans')
-  createArtisans(@Body() createArtisansDto: CreateArtisansDto) {
-    return this.authService.createArtisans(createArtisansDto);
+  // @Post('/createUser')
+  // create(@Body() createUserDto: CreateUserDto) {
+  //   return this.authService.createUser(createUserDto);
+  // }
+  // @Post('/createAdmin')
+  // createAdmin(@Body() createAdminDto: CreateAdminDto) {
+  //   return this.authService.createAdmin(createAdminDto);
+  // }
+  // @Post('/createArtisans')
+  // createArtisans(@Body() createArtisansDto: CreateArtisansDto) {
+  //   return this.authService.createArtisans(createArtisansDto);
+  // }
+  
+  @Post('/createProfile')
+  createPersonnel(@Body() createArtisansDto: CreateArtisansDto) {
+    return this.authService.createPersonnel(createArtisansDto);
   }
 
   // @Get()
