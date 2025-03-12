@@ -3,7 +3,7 @@ import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 
-@Controller('api')
+@Controller('admins')
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
@@ -13,18 +13,18 @@ export class AdminsController {
     return this.adminsService.getAdmins();
   }
  
-  @Get('admins/:id')
+  @Get('/:id')
   findOne(@Param('id') id: string) {
     return this.adminsService.getAdminProfile(id);
   }
 
 
-  @Patch('admins/:id')
+  @Patch('/:id')
   update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
     return this.adminsService.updateAdmin(id, updateAdminDto);
   }
 
-  @Delete('admins/:id')
+  @Delete('/:id')
   remove(@Param('id') id: string) {
     return this.adminsService.removeAdmin(id);
   }

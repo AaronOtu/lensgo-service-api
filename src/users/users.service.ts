@@ -15,7 +15,7 @@ export class UsersService {
       console.log("Fetch begin");
 
       const users = await this.userModel.find();
-      console.log("Fetched users", users) 
+      //console.log("Fetched users", users) 
 
       return {
         message: 'Successfully returned all users',
