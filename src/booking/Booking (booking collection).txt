@@ -1,0 +1,31 @@
+Booking: (booking collection)
+
+Props:
+
+> user_id
+> provider_id
+> booking_status (default: pending | Accepted | cancel |Declined | inProgress | completed )
+> location
+> scheduled_time
+> messaging_id (maps to messages collection)
+> timestamps upon document insertion
+
+
+Booking flow:
+
+1. Check if select provider is accepting booking
+
+2. if accepting booking, set initial schedule date and location,( user or provider should be able to modify initial location or scheduled_time if both agree)
+
+3. If modifications, parties need to chat through in-app messaging. If parties reach a conclusion, provider declines or user cancels.
+
+4. if accepted, set a prior reminder (cron job).
+
+
+CRUD Operations:
+
+> Get all bookings (admin permission)
+> Get all bookings (users and providers)
+> Create a booking (only user permission)
+> Update a booking (users and provider persmission)
+> Delete a booking ? (If we delete a booking messages should be deleted...?)
