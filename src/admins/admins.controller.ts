@@ -1,31 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { AdminsService } from './admins.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id/parse-object-id.pipe';
 
 @Controller('admins')
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
-  @Get('admins')
+  @Get('')
   findAll() {
     console.log('Controller: findAll method called');
     return this.adminsService.getAdmins();
   }
- 
+
   @Get('/:id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id',ParseObjectIdPipe) id: string) {
     return this.adminsService.getAdminProfile(id);
   }
 
-
   @Patch('/:id')
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
+  update(@Param('id',ParseObjectIdPipe) id: string, @Body() updateAdminDto: UpdateAdminDto) {
     return this.adminsService.updateAdmin(id, updateAdminDto);
   }
 
   @Delete('/:id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id',ParseObjectIdPipe) id: string) {
     return this.adminsService.removeAdmin(id);
   }
 }

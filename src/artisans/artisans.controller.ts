@@ -1,16 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ArtisansService } from './artisans.service';
-import { CreateArtisansDto } from './dto/create-artisans.dto';
 import { UpdateArtisanDto } from './dto/update-artisans.dto';
+import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id/parse-object-id.pipe';
 @Controller('artisans')
 export class ArtisansController {
   constructor(private readonly artisansService: ArtisansService) {}
-
-
-  // @Post()
-  // create(@Body() createArtisansDto: CreateArtisansDto) {
-  //   return this.artisansService.create(createArtisansDto);
-  // }
 
   @Get()
   findAll() {
@@ -18,17 +12,17 @@ export class ArtisansController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseObjectIdPipe) id: string) {
     return this.artisansService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtisanDto: UpdateArtisanDto) {
+  update(@Param('id',ParseObjectIdPipe) id: string, @Body() updateArtisanDto: UpdateArtisanDto) {
     return this.artisansService.update(id, updateArtisanDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id',ParseObjectIdPipe) id: string) {
     return this.artisansService.remove(id);
   }
 }

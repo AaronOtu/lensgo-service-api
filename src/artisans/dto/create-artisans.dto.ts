@@ -6,12 +6,12 @@ export class CreateArtisansDto {
      @IsNotEmpty()
       @IsString()
       @ApiProperty({required:true, default:'Aaron'})
-      firstname: string
+      firstName: string
     
       @IsNotEmpty()
       @IsString()
       @ApiProperty({required: true, default:'Otu'})
-      lastname: string
+      lastName: string
     
       @IsNotEmpty()
       @IsEmail()

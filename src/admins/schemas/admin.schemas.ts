@@ -1,15 +1,14 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument } from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
 
-export type AdminDocument = HydratedDocument<Admin>
-@Schema({timestamps: true})
+export type AdminDocument = HydratedDocument<Admin>;
+@Schema({ timestamps: true })
 export class Admin {
+  @Prop()
+  firstName: string;
 
   @Prop()
-  firstname: string;
-
-  @Prop()
-  lastname: string;
+  lastName: string;
 
   @Prop()
   email: string;
@@ -17,7 +16,6 @@ export class Admin {
   @Prop()
   password: string;
 
-  
   @Prop({ type: Date })
   createdAt?: Date;
 

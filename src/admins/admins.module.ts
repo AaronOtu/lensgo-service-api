@@ -4,13 +4,12 @@ import { AdminsController } from './admins.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Admin, AdminSchema } from './schemas/admin.schemas';
 
-
 @Module({
-  imports:[
-    MongooseModule.forFeature([{name:Admin.name, schema:AdminSchema}])
+  imports: [
+    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
   ],
   controllers: [AdminsController],
   providers: [AdminsService],
-  exports:[MongooseModule]
+  exports: [MongooseModule],
 })
 export class AdminsModule {}

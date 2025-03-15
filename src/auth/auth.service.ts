@@ -1,6 +1,12 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/users/schemas/user.schemas';
 import { Admin } from 'src/admins/schemas/admin.schemas';
@@ -11,6 +17,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
 import { Artisans } from 'src/artisans/schemas/artisans.schemas';
 import { CreateArtisansDto } from 'src/artisans/dto/create-artisans.dto';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -75,6 +82,7 @@ export class AuthService {
       throw error;
     }
   }
+
   async createArtisans(createArtisansDto: CreateArtisansDto) {
     try {
       const admins = await this.artisansModel.findOne({
@@ -102,7 +110,7 @@ export class AuthService {
     }
   }
 
-  async createPersonnel(createUserDto: CreateUserDto) {
+  async createPersonnel(createUserDto: CreateAuthDto) {
     try {
       const { email, role } = createUserDto;
       const existingUser = await this.userModel.findOne({ email });
@@ -156,26 +164,100 @@ export class AuthService {
         user: newUser,
       };
     } catch (error) {
-      this.logger.log(error)
+      this.logger.log(error);
       throw error;
     }
   }
 
+  async login(loginDto: LoginAuthDto, @Res() res: Response) {
+    if (!loginDto.email || !loginDto.password) {
+      throw new BadRequestException('Email and password are required');
+    }
 
-  
-  // findAll() {
-  //   return `This action returns all auth`;
-  // }
+    // Fetch user from all models in parallel (more efficient)
+    const [user, admin, artisan] = await Promise.all([
+      this.userModel.findOne({ email: loginDto.email }).lean(),
+      this.adminModel.findOne({ email: loginDto.email }).lean(),
+      this.artisansModel.findOne({ email: loginDto.email }).lean(),
+    ]);
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+    const userRoles = [
+      { data: user, role: 'USER' },
+      { data: admin, role: 'ADMIN' },
+      { data: artisan, role: 'ARTISAN' },
+    ];
+
+    const foundUser = userRoles.find((entry) => entry.data !== null);
+    const userData = foundUser?.data || null;
+    const role = foundUser?.role || null;
+
+    if (!userData) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isMatch = await bcrypt.compare(loginDto.password, userData.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { id: userData._id, email: userData.email, role };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    this.logger.log(
+      `${role} logged in: ${userData.firstName || 'N/A'} ${userData.lastName || 'N/A'} with ${userData.email}`,
+    );
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      profile: {
+        id: userData._id,
+        firstName: userData.firstName || 'N/A',
+        lastName: userData.lastName || 'N/A',
+        email: userData.email,
+        role,
+      },
+      accessToken,
+      //refreshToken,
+    });
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+  async refreshToken(req: Request, res: Response) {
+    const refreshToken = req.cookies?.refresh_token;
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not provided');
+    }
+    try {
+      // Verify the refresh token
+      const payload = this.jwtService.verify(refreshToken);
+      if (!payload) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Generate new access token
+      const newAccessToken = this.jwtService.sign({
+        id: payload.id,
+        email: payload.email,
+        role: payload.role,
+      });
+
+      return res.json({
+        success: true,
+        message: 'Token refreshed successfully',
+        email: payload.email,
+        role: payload.role,
+        accessToken: newAccessToken,
+      });
+    } catch (error) {
+      this.logger.log(error);
+      throw new UnauthorizedException('Refresh token expired or invalid');
+    }
   }
 }
