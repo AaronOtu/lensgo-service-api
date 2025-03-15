@@ -21,7 +21,7 @@ export class AuthController {
     return this.authService.createArtisans(createArtisansDto);
   }
    */
-  @Post('/createProfile')
+  @Post('/create-profile')
   createPersonnel(@Body() createUserDto: CreateAuthDto) {
     return this.authService.createPersonnel(createUserDto);
   }
