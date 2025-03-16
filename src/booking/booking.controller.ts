@@ -11,7 +11,6 @@ import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id/parse-object
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { Types } from 'mongoose';
 
 @Controller('booking')
 export class BookingController {
@@ -28,20 +27,20 @@ export class BookingController {
   }
 
   @Get(':id')
-  getBooking(@Param('id', ParseObjectIdPipe) id: Types.ObjectId) {
+  getBooking(@Param('id', ParseObjectIdPipe) id: string) {
     return this.bookingService.getBooking(id);
   }
 
   @Patch(':id')
   updateBooking(
-    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @Param('id', ParseObjectIdPipe) id: string,
     @Body() updateBookingDto: UpdateBookingDto,
   ) {
     return this.bookingService.updateBooking(id, updateBookingDto);
   }
 
   @Delete(':id')
-  delete(@Param('id', ParseObjectIdPipe) id: Types.ObjectId) {
+  delete(@Param('id', ParseObjectIdPipe) id: string) {
     return this.bookingService.deleteBooking(id);
   }
 }
