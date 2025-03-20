@@ -18,7 +18,7 @@ export class UsersService {
 
   async getAllUsers() {
     try {
-      const users = await this.userModel.find();
+      const users = await this.userModel.find().select('-password').exec();
 
       return {
         message: 'Successfully returned all users',
@@ -36,9 +36,11 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException('User not found');
       }
+      this.logger.log(`Successfully return user: ${user}`);
+      const { password, ...users } = user.toObject();
       return {
         message: 'Successfully return user',
-        user: user,
+        user: users,
       };
     } catch (error) {
       this.logger.log(error.message);
@@ -51,6 +53,7 @@ export class UsersService {
       const Id = new Types.ObjectId(id);
       const user = await this.userModel
         .findByIdAndUpdate(Id, updateUserDto, { new: true })
+        .select('-password')
         .exec();
       if (!user) {
         throw new NotFoundException('User not found');
@@ -68,7 +71,7 @@ export class UsersService {
   async removeUser(id: string) {
     try {
       const Id = new Types.ObjectId(id);
-      const user = await this.userModel.findByIdAndDelete(Id).exec();
+      const user = await this.userModel.findById(Id).select('-password').exec();
       if (!user) {
         throw new NotFoundException('User not found');
       }

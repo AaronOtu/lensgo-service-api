@@ -2,11 +2,18 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   Logger,
+  NotFoundException,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
+import {
+  CreateAuthDto,
+  ForgotPasswordDto,
+  LoginAuthDto,
+  ResetPasswordDto,
+} from './dto/create-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/users/schemas/user.schemas';
 import { Admin } from 'src/admins/schemas/admin.schemas';
@@ -18,16 +25,18 @@ import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
 import { Artisans } from 'src/artisans/schemas/artisans.schemas';
 import { CreateArtisansDto } from 'src/artisans/dto/create-artisans.dto';
 import { Request, Response } from 'express';
+import { MailService } from 'services/https.services';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private;
+
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
     @InjectModel(Artisans.name) private readonly artisansModel: Model<Artisans>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -174,7 +183,7 @@ export class AuthService {
       throw new BadRequestException('Email and password are required');
     }
 
-    // Fetch user from all models in parallel (more efficient)
+    // Fetch user from all models in parallel
     const [user, admin, artisan] = await Promise.all([
       this.userModel.findOne({ email: loginDto.email }).lean(),
       this.adminModel.findOne({ email: loginDto.email }).lean(),
@@ -258,6 +267,74 @@ export class AuthService {
     } catch (error) {
       this.logger.log(error);
       throw new UnauthorizedException('Refresh token expired or invalid');
+    }
+  }
+
+  async logout(@Res() res: Response) {
+    res.clearCookie('refresh_token');
+    return res.json({
+      success: true,
+      message: 'Logout successful',
+    });
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    try {
+      const user =
+        (await this.adminModel.findOne({ email: dto.email })) ||
+        (await this.userModel.findOne({ email: dto.email })) ||
+        (await this.artisansModel.findOne({ email: dto.email }));
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
+      const link = `Reset password link: ${process.env.FRONTEND_URL}/reset-password/${token}`;
+      await this.mailService.sendMail({
+        to: user.email,
+        from: process.env.MAIL_USER,
+        subject: 'Reset Password',
+        body: link,
+      });
+      this.logger.log(`Password reset link sent to ${user.email}`);
+      this.logger.log(link);
+
+      return {
+        success: true,
+        message: `Password reset link sent to ${user.email}`,
+      };
+    } catch (error) {
+      this.logger.error(`Forgot Password Error: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    try {
+      const payload = this.jwtService.verify(dto.token);
+      const user =
+        (await this.adminModel.findById(payload.id)) ||
+        (await this.artisansModel.findById(payload.id)) ||
+        (await this.userModel.findById(payload.id));
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      user.password = await bcrypt.hash(dto.newPassword, 10);
+      await user.save();
+
+      this.logger.log(
+        `Password has been reset successfully for ${user.email} `,
+      );
+
+      return {
+        success: true,
+        message: `Password has been reset successfully for ${user.email}`,
+      };
+    } catch (error) {
+      this.logger.error(`Reset Password Error: ${error.message}`, error.stack);
+      throw error;
     }
   }
 }

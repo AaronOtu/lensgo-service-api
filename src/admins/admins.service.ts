@@ -19,7 +19,7 @@ export class AdminsService {
   async getAdmins() {
     try {
       console.log('Hitting the admin endpoint');
-      const admins = await this.adminModel.find().exec();
+      const admins = await this.adminModel.find().select('-password').exec();
 
       return {
         message: 'Retrieving all admins',
@@ -34,7 +34,7 @@ export class AdminsService {
   async getAdminProfile(id: string) {
     try {
       const Id = new Types.ObjectId(id);
-      const admins = await this.adminModel.findById(Id).exec();
+      const admins = await this.adminModel.findById(Id).select('-password').exec();
 
       if (!admins) {
         throw new NotFoundException('Admin not found');
@@ -55,11 +55,13 @@ export class AdminsService {
       const Id = new Types.ObjectId(id);
       const admin = await this.adminModel
         .findByIdAndUpdate(Id, updateAdminDto, { new: true })
+        .select('-password')
         .exec();
 
       if (!admin) {
         throw new NotFoundException('Admin not found');
       }
+      this.logger.log(`Successfully updated admin profile `);
       return {
         message: 'Successfully updated admin profile',
         admin: admin,
@@ -73,11 +75,12 @@ export class AdminsService {
   async removeAdmin(id: string) {
     try {
       const Id = new Types.ObjectId(id);
-      const removedAdmin = await this.adminModel.findByIdAndDelete(Id);
+      const removedAdmin = await this.adminModel.findByIdAndDelete(Id).select('-password').exec();
       if (!removedAdmin) {
         this.logger.log(`Admin with id ${id} not found`);
         throw new NotFoundException('Admin not found');
       }
+      this.logger.log(`Successfully deleted admin`);
       return {
         message: `Successfully deleted admin`,
       };

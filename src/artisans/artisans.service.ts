@@ -13,7 +13,10 @@ export class ArtisansService {
 
   async findAll() {
     try {
-      const artisans = await this.artisansModel.find();
+      const artisans = await this.artisansModel
+        .find()
+        .select('-password')
+        .exec();
 
       return {
         message: 'Successfully returned all artisans',
@@ -28,7 +31,10 @@ export class ArtisansService {
   async findOne(id: string) {
     try {
       const Id = new Types.ObjectId(id);
-      const artisan = await this.artisansModel.findById(Id);
+      const artisan = await this.artisansModel
+        .findById(Id)
+        .select('-password')
+        .exec();
       if (!artisan) {
         this.logger.log(`Artisan with id ${id} not found`);
         throw new NotFoundException(`Artisan with id ${id} not found`);
@@ -46,11 +52,10 @@ export class ArtisansService {
   async update(id: string, updateArtisanDto: UpdateArtisanDto) {
     try {
       const Id = new Types.ObjectId(id);
-      const updatedArtisan = await this.artisansModel.findByIdAndUpdate(
-        Id,
-        updateArtisanDto,
-        { new: true },
-      );
+      const updatedArtisan = await this.artisansModel
+        .findByIdAndUpdate(Id, updateArtisanDto, { new: true })
+        .select('-password')
+        .exec();
       if (!updatedArtisan) {
         this.logger.log(`Artisan with id ${id} not found`);
         throw new NotFoundException(`Artisan with id ${id} not found`);
@@ -68,7 +73,10 @@ export class ArtisansService {
   async remove(id: string) {
     try {
       const Id = new Types.ObjectId(id);
-      const removedArtisan = await this.artisansModel.findByIdAndDelete(Id);
+      const removedArtisan = await this.artisansModel
+        .findByIdAndDelete(Id)
+        .select('-password')
+        .exec();
       if (!removedArtisan) {
         this.logger.log(`Artisan with id ${id} not found`);
         throw new NotFoundException(`Artisan with id ${id} not found`);

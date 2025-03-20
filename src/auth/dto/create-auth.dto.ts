@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { Role } from 'src/enum/role.enum';
 
 export class CreateAuthDto {
@@ -40,4 +40,22 @@ export class LoginAuthDto {
   @IsNotEmpty()
   @ApiProperty({ required: true, default: 'password1234' })
   password: string;
+}
+
+
+export class ForgotPasswordDto {
+  @IsString()
+  @IsEmail()
+  @IsNotEmpty()
+  @ApiProperty({ required: true, default: 'vigilantkwao@gmail.com' })
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  token: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
 }
