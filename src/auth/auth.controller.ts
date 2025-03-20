@@ -4,6 +4,7 @@ import {
   CreateAuthDto,
   ForgotPasswordDto,
   LoginAuthDto,
+  ResetPasswordDto,
 } from './dto/create-auth.dto';
 import { Request, Response } from 'express';
 
@@ -42,6 +43,11 @@ export class AuthController {
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return await this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return await this.authService.resetPassword(dto);
   }
 
   @Post('logout')

@@ -53,9 +53,11 @@ export class ForgotPasswordDto {
 
 export class ResetPasswordDto {
   @IsString()
+  @ApiProperty({required:true, default : 'iohh9ihciohvdihiuhgiuh9hidhgiehih9hiudheiwghiuehudhdhiugh'})
   token: string;
 
   @IsString()
   @MinLength(6)
+  @ApiProperty({required:true, default : 'password1234'})
   newPassword: string;
 }
