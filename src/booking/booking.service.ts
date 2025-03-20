@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking } from './schemas/booking.schema';
+import { User } from 'src/users/schemas/user.schemas';
+import { Artisans } from 'src/artisans/schemas/artisans.schemas';
 import { Types } from 'mongoose';
 
 @Injectable()
@@ -11,20 +13,34 @@ export class BookingService {
   private readonly logger = new Logger(BookingService.name);
   constructor(
     @InjectModel(Booking.name) private readonly bookingModel: Model<Booking>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Artisans.name) private readonly artisansModel: Model<Artisans>,
   ) {}
   async createBooking(
     createBookingDto: CreateBookingDto,
   ): Promise<{ message: string }> {
     try {
-      const booking = await this.bookingModel.create(createBookingDto);
-
-      this.logger.log(
-        `Booking created successfully for user: ${booking.user_id}, ID: ${booking._id}`,
+      const providerCheck = await this.artisansModel.findById(
+        createBookingDto.provider_id,
       );
+      if (providerCheck) {
+        //The DTO would be destructed to provide the user Id from the system
+        const booking = await this.bookingModel.create(createBookingDto);
 
-      return {
-        message: 'Service booked successfully',
-      };
+        this.logger.log(
+          `Booking created successfully for user: ${booking.user_id}, ID: ${booking._id}`,
+        );
+
+        return {
+          message: 'Service booked successfully',
+        };
+      } else {
+        this.logger.log(
+          `Provider with ID: ${createBookingDto.provider_id} not found`,
+        );
+
+        throw new NotFoundException('Provider not found');
+      }
     } catch (error) {
       this.logger.error(
         `Failed to create booking: ${error.message}`,
