@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import {
+  ChangePasswordDto,
   CreateAuthDto,
   ForgotPasswordDto,
   LoginAuthDto,
@@ -19,7 +20,7 @@ import { User } from 'src/users/schemas/user.schemas';
 import { Admin } from 'src/admins/schemas/admin.schemas';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
 import { Artisans } from 'src/artisans/schemas/artisans.schemas';
@@ -179,64 +180,81 @@ export class AuthService {
   }
 
   async login(loginDto: LoginAuthDto, @Res() res: Response) {
-    if (!loginDto.email || !loginDto.password) {
-      throw new BadRequestException('Email and password are required');
+
+    try {
+      if (!loginDto.email || !loginDto.password || !loginDto.role) {
+        throw new BadRequestException('Email, password and role are required');
+      }
+    
+      let userData;
+      let modelName;
+    
+      switch (loginDto.role) {
+        case 'USER':
+          userData = await this.userModel.findOne({ email: loginDto.email }).lean();
+          modelName = 'User';
+          break;
+        case 'ADMIN':
+          userData = await this.adminModel.findOne({ email: loginDto.email }).lean();
+          modelName = 'Admin';
+          break;
+        case 'ARTISAN':
+          userData = await this.artisansModel.findOne({ email: loginDto.email }).lean();
+          modelName = 'Artisan';
+          break;
+        default:
+          throw new BadRequestException('Invalid role specified');
+      }
+    
+      if (!userData) {
+        throw new NotFoundException(`${modelName} not found with this email`);
+      }
+    
+      const isMatch = await bcrypt.compare(loginDto.password, userData.password);
+      if (!isMatch) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    
+      const payload = { 
+        id: userData._id, 
+        email: userData.email, 
+        role: loginDto.role,
+        firstName: userData.firstName,
+        lastName: userData.lastName
+      };
+      
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    
+      this.logger.log(
+        `${loginDto.role} logged in: ${userData.firstName || 'N/A'} ${userData.lastName || 'N/A'} with ${userData.email}`,
+      );
+    
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+    
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        profile: {
+          id: userData._id,
+          firstName: userData.firstName || 'N/A',
+          lastName: userData.lastName || 'N/A',
+          email: userData.email,
+          role: loginDto.role,
+        },
+        accessToken,
+      });
+    } catch (error) {
+      this.logger.error(error)
+      throw error
     }
-
-    // Fetch user from all models in parallel
-    const [user, admin, artisan] = await Promise.all([
-      this.userModel.findOne({ email: loginDto.email }).lean(),
-      this.adminModel.findOne({ email: loginDto.email }).lean(),
-      this.artisansModel.findOne({ email: loginDto.email }).lean(),
-    ]);
-
-    const userRoles = [
-      { data: user, role: 'USER' },
-      { data: admin, role: 'ADMIN' },
-      { data: artisan, role: 'ARTISAN' },
-    ];
-
-    const foundUser = userRoles.find((entry) => entry.data !== null);
-    const userData = foundUser?.data || null;
-    const role = foundUser?.role || null;
-
-    if (!userData) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isMatch = await bcrypt.compare(loginDto.password, userData.password);
-    if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { id: userData._id, email: userData.email, role };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-
-    this.logger.log(
-      `${role} logged in: ${userData.firstName || 'N/A'} ${userData.lastName || 'N/A'} with ${userData.email}`,
-    );
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      profile: {
-        id: userData._id,
-        firstName: userData.firstName || 'N/A',
-        lastName: userData.lastName || 'N/A',
-        email: userData.email,
-        role,
-      },
-      accessToken,
-      //refreshToken,
-    });
+   
   }
-
   async refreshToken(req: Request, res: Response) {
     const refreshToken = req.cookies?.refresh_token;
 
@@ -335,6 +353,42 @@ export class AuthService {
     } catch (error) {
       this.logger.error(`Reset Password Error: ${error.message}`, error.stack);
       throw error;
+    }
+  }
+
+  async changePassword(dto: ChangePasswordDto) {
+    try {
+      const user =
+        (await this.adminModel.findOne({ email: dto.email })) ||
+        (await this.userModel.findOne({ email: dto.email })) ||
+        (await this.artisansModel.findOne({ email: dto.email }));
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        dto.oldPassword,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new BadRequestException('Invalid old password');
+      }
+
+      const hashedNewPassword = await bcrypt.hash(dto.newPassword, 10);
+      user.password = hashedNewPassword;
+      await user.save();
+      this.logger.log(
+        `Password has been changed successfully for ${user.email}`,
+      );
+
+      return {
+        success: true,
+        message: 'Password changed successfully',
+      };
+    } catch (e) {
+      this.logger.error(`Error :=> ${e}`);
+      throw e;
     }
   }
 }
