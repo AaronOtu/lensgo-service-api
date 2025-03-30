@@ -6,7 +6,6 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking } from './schemas/booking.schema';
 import { User } from 'src/users/schemas/user.schemas';
 import { Artisans } from 'src/artisans/schemas/artisans.schemas';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class BookingService {
@@ -64,7 +63,7 @@ export class BookingService {
     }
   }
 
-  async getBooking(id: Types.ObjectId): Promise<Booking> {
+  async getBooking(id: string): Promise<Booking> {
     try {
       const booking = await this.bookingModel.findById(id).exec();
       if (!booking) {
@@ -83,7 +82,7 @@ export class BookingService {
   }
 
   async updateBooking(
-    id: Types.ObjectId,
+    id: string,
     updateBookingDto: UpdateBookingDto,
   ): Promise<{ message: string }> {
     try {
@@ -109,7 +108,7 @@ export class BookingService {
     }
   }
 
-  async deleteBooking(id: Types.ObjectId): Promise<{ message: string }> {
+  async deleteBooking(id: string): Promise<{ message: string }> {
     try {
       const deletedBooking = await this.bookingModel.findByIdAndDelete(id);
 

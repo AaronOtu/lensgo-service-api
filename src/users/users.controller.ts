@@ -2,7 +2,9 @@ import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id/parse-object-id.pipe';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('users')
 export class UsersController {
   //private logger = new Logger(UsersService.name);

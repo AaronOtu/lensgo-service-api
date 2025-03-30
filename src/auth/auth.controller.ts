@@ -8,7 +8,9 @@ import {
   ResetPasswordDto,
 } from './dto/create-auth.dto';
 import { Request, Response } from 'express';
-
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Public } from 'src/guard/public.decorator';
+@ApiBearerAuth('access-token')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -31,7 +33,8 @@ export class AuthController {
   createPersonnel(@Body() createUserDto: CreateAuthDto) {
     return this.authService.createPersonnel(createUserDto);
   }
-
+  
+  @Public()
   @Post('/login')
   login(@Body() loginDto: LoginAuthDto, @Res() res: Response) {
     return this.authService.login(loginDto, res);

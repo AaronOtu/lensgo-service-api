@@ -123,9 +123,15 @@ export class AuthService {
   async createPersonnel(createUserDto: CreateAuthDto) {
     try {
       const { email, role } = createUserDto;
-      const existingUser = await this.userModel.findOne({ email });
-      const existingAdmin = await this.adminModel.findOne({ email });
-      const existingArtisan = await this.artisansModel.findOne({ email });
+      const existingUser = await this.userModel
+        .findOne({ email })
+        .select('-password');
+      const existingAdmin = await this.adminModel
+        .findOne({ email })
+        .select('-password');
+      const existingArtisan = await this.artisansModel
+        .findOne({ email })
+        .select('-password');
 
       if (existingUser || existingAdmin || existingArtisan) {
         throw new ConflictException('User already exist');
@@ -180,63 +186,70 @@ export class AuthService {
   }
 
   async login(loginDto: LoginAuthDto, @Res() res: Response) {
-
     try {
       if (!loginDto.email || !loginDto.password || !loginDto.role) {
         throw new BadRequestException('Email, password and role are required');
       }
-    
+
       let userData;
       let modelName;
-    
+
       switch (loginDto.role) {
         case 'USER':
-          userData = await this.userModel.findOne({ email: loginDto.email }).lean();
+          userData = await this.userModel
+            .findOne({ email: loginDto.email })
+            .lean();
           modelName = 'User';
           break;
         case 'ADMIN':
-          userData = await this.adminModel.findOne({ email: loginDto.email }).lean();
+          userData = await this.adminModel
+            .findOne({ email: loginDto.email })
+            .lean();
           modelName = 'Admin';
           break;
         case 'ARTISAN':
-          userData = await this.artisansModel.findOne({ email: loginDto.email }).lean();
+          userData = await this.artisansModel
+            .findOne({ email: loginDto.email })
+            .lean();
           modelName = 'Artisan';
           break;
         default:
           throw new BadRequestException('Invalid role specified');
       }
-    
+
       if (!userData) {
         throw new NotFoundException(`${modelName} not found with this email`);
       }
-    
-      const isMatch = await bcrypt.compare(loginDto.password, userData.password);
+
+      const isMatch = await bcrypt.compare(
+        loginDto.password,
+        userData.password,
+      );
       if (!isMatch) {
         throw new UnauthorizedException('Invalid credentials');
       }
-    
-      const payload = { 
-        id: userData._id, 
-        email: userData.email, 
+
+      const payload = {
+        id: userData._id,
+        email: userData.email,
         role: loginDto.role,
         firstName: userData.firstName,
-        lastName: userData.lastName
+        lastName: userData.lastName,
       };
-      
+
       const accessToken = this.jwtService.sign(payload);
       const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-    
+
       this.logger.log(
         `${loginDto.role} logged in: ${userData.firstName || 'N/A'} ${userData.lastName || 'N/A'} with ${userData.email}`,
       );
-    
+
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
-    
+
       return res.status(200).json({
         success: true,
         message: 'Login successful',
@@ -250,10 +263,9 @@ export class AuthService {
         accessToken,
       });
     } catch (error) {
-      this.logger.error(error)
-      throw error
+      this.logger.error(error);
+      throw error;
     }
-   
   }
   async refreshToken(req: Request, res: Response) {
     const refreshToken = req.cookies?.refresh_token;
@@ -307,7 +319,8 @@ export class AuthService {
       }
 
       const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
-      const link = `Reset password link: ${process.env.FRONTEND_URL}/reset-password/${token}`;
+      //const link = `Reset password link: ${process.env.FRONTEND_URL}/reset-password/${token}`;
+      const link = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
       await this.mailService.sendMail({
         to: user.email,
         from: process.env.MAIL_USER,
@@ -323,7 +336,7 @@ export class AuthService {
       };
     } catch (error) {
       this.logger.error(`Forgot Password Error: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Something went wrong');
+      throw error;
     }
   }
 
