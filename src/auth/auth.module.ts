@@ -7,7 +7,7 @@ import { UsersModule } from 'src/users/users.module';
 import { AdminsModule } from 'src/admins/admins.module';
 import { ArtisansModule } from 'src/artisans/artisans.module';
 import * as dotenv from 'dotenv';
-import { MailService } from 'services/https.services';
+import { MailService } from 'src/services/https.services';
 dotenv.config();
 @Module({
   imports: [

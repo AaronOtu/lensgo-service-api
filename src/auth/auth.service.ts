@@ -26,7 +26,7 @@ import { CreateAdminDto } from 'src/admins/dto/create-admin.dto';
 import { Artisans } from 'src/artisans/schemas/artisans.schemas';
 import { CreateArtisansDto } from 'src/artisans/dto/create-artisans.dto';
 import { Request, Response } from 'express';
-import { MailService } from 'services/https.services';
+import { MailService } from 'src/services/https.services';
 
 @Injectable()
 export class AuthService {
