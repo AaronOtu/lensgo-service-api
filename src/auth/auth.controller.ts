@@ -34,7 +34,7 @@ export class AuthController {
   createPersonnel(@Body() createUserDto: CreateAuthDto) {
     return this.authService.createPersonnel(createUserDto);
   }
-  
+
   @Public()
   @Post('/login')
   login(@Body() loginDto: LoginAuthDto, @Res() res: Response) {
@@ -45,6 +45,7 @@ export class AuthController {
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     return this.authService.refreshToken(req, res);
   }
+  @Public()
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return await this.authService.forgotPassword(dto);

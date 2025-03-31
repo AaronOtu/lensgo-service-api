@@ -22,10 +22,10 @@ class LocationDto {
 }
 
 export class CreateBookingDto {
-  @IsMongoId()
-  @IsNotEmpty()
-  @ApiProperty({ required: true, example: '65f22a0bc3a8a1b123456789' })
-  user_id: string;
+  // @IsMongoId()
+  // @IsNotEmpty()
+  // @ApiProperty({ required: true, example: '65f22a0bc3a8a1b123456789' })
+  // user_id: string;
 
   @IsMongoId()
   @IsNotEmpty()

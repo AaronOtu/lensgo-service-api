@@ -21,7 +21,12 @@ import { JwtModule } from '@nestjs/jwt';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' },
     }),
-    AuthModule,AdminsModule,UsersModule, ArtisansModule, BookingModule,],
+    AuthModule,
+    AdminsModule,
+    UsersModule,
+    ArtisansModule,
+    BookingModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,

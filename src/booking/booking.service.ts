@@ -16,15 +16,22 @@ export class BookingService {
     @InjectModel(Artisans.name) private readonly artisansModel: Model<Artisans>,
   ) {}
   async createBooking(
+    userID,
     createBookingDto: CreateBookingDto,
   ): Promise<{ message: string }> {
     try {
       const providerCheck = await this.artisansModel.findById(
         createBookingDto.provider_id,
       );
-      if (providerCheck) {
-        //The DTO would be destructed to provide the user Id from the system
-        const booking = await this.bookingModel.create(createBookingDto);
+
+      const userCheck = await this.userModel.findById(userID);
+      if (providerCheck && userCheck) {
+        const booking = new this.bookingModel({
+          user_id: userID,
+          ...createBookingDto,
+        });
+
+        await booking.save();
 
         this.logger.log(
           `Booking created successfully for user: ${booking.user_id}, ID: ${booking._id}`,
@@ -35,10 +42,12 @@ export class BookingService {
         };
       } else {
         this.logger.log(
-          `Provider with ID: ${createBookingDto.provider_id} not found`,
+          `Provider with ID: ${createBookingDto.provider_id} not found
+          User with ID: ${userID} not found
+          `,
         );
 
-        throw new NotFoundException('Provider not found');
+        throw new NotFoundException('Provider or User not found');
       }
     } catch (error) {
       this.logger.error(

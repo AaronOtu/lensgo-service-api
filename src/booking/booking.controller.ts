@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id/parse-object-id.pipe';
 import { BookingService } from './booking.service';
@@ -19,8 +20,8 @@ export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   @Post()
-  create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingService.createBooking(createBookingDto);
+  create(@Req() req, @Body() createBookingDto: CreateBookingDto) {
+    return this.bookingService.createBooking(req.user.id, createBookingDto);
   }
 
   @Get()
