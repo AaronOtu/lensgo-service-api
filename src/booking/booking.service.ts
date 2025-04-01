@@ -34,17 +34,18 @@ export class BookingService {
         await booking.save();
 
         this.logger.log(
-          `Booking created successfully for user: ${booking.user_id}, ID: ${booking._id}`,
+          `Booking request created successfully for user: ${booking.user_id}, 
+           ProviderID: ${createBookingDto.provider_id},
+           BookingID: ${booking._id}`,
         );
 
         return {
-          message: 'Service booked successfully',
+          message: 'Booking request successfull',
         };
       } else {
         this.logger.log(
           `Provider with ID: ${createBookingDto.provider_id} not found
-          User with ID: ${userID} not found
-          `,
+           User with ID: ${userID} not found`,
         );
 
         throw new NotFoundException('Provider or User not found');
