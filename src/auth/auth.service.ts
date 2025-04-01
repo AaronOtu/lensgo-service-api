@@ -285,7 +285,7 @@ export class AuthService {
         email: payload.email,
         role: payload.role,
       });
-
+     this.logger.log(`Token refreshed for ${payload.email} with role ${payload.role}`);
       return res.json({
         success: true,
         message: 'Token refreshed successfully',

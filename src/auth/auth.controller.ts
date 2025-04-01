@@ -11,6 +11,7 @@ import { Request, Response } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Public } from 'src/guard/public.decorator';
 @ApiBearerAuth('access-token')
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -29,13 +30,12 @@ export class AuthController {
     return this.authService.createArtisans(createArtisansDto);
   }
    */
-  @Public()
+
   @Post('/create-profile')
   createPersonnel(@Body() createUserDto: CreateAuthDto) {
     return this.authService.createPersonnel(createUserDto);
   }
 
-  @Public()
   @Post('/login')
   login(@Body() loginDto: LoginAuthDto, @Res() res: Response) {
     return this.authService.login(loginDto, res);
@@ -45,7 +45,7 @@ export class AuthController {
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     return this.authService.refreshToken(req, res);
   }
-  @Public()
+
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return await this.authService.forgotPassword(dto);
@@ -54,7 +54,7 @@ export class AuthController {
   async changePassword(@Body() dto: ChangePasswordDto) {
     return await this.authService.changePassword(dto);
   }
-  @Public()
+
   @Post('reset-password')
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
